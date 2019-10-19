@@ -28,7 +28,7 @@ class Register(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
-        hashed_pw = bcrypt.hashpw(password,bcryt.gensalt())
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'),bcryt.gensalt())
 
         users.insert({
             "Username":username,
@@ -43,6 +43,21 @@ class Register(Resource):
         }
 
         return jsonify(retJson)
+
+def verifyPw(username,password):
+    hashed_pw = users.find({
+        "Username":username
+    })[0]["Password"]
+
+    if bcrypt.checkpw(password.encode('utf-8'),hashed_pw):
+        return True
+    return False
+
+def countTokens(username):
+    tokens=users.find({
+        "Username":username,
+    })[0]["Tokens"]
+    return tokens
 
 class Sentence(Resource):
     def post(self):
