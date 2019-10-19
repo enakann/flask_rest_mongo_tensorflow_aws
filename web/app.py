@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 from pymongo import MongoClient
+import bcrypt
 
 app = Flask(__name__)
 api = Api(app)
@@ -28,7 +29,7 @@ class Register(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
-        hashed_pw = bcrypt.hashpw(password.encode('utf-8'),bcryt.gensalt())
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())
 
         users.insert({
             "Username":username,
@@ -60,6 +61,27 @@ def countTokens(username):
     return tokens
 
 class Sentence(Resource):
+    
+    def get(self):
+        data=request.get_json()
+        username=data["username"]
+        password=data["password"]
+
+        correct_pw = verifyPw(username,password)
+
+        if not correct_pw:
+            return jsonify({"status":"302"})
+
+        num_tokens = countTokens(username)
+        if num_tokens <= 0:
+            return jsonify({"status":301})
+
+        sentence=users.find({
+            "Username":username})[0]["Sentence"]
+
+        retJson={"status":200,"sentence":sentence}
+        return jsonify(retJson)
+    
     def post(self):
         #step1: get the posted data
         postedData=request.get_json()
@@ -96,6 +118,26 @@ class Sentence(Resource):
             "status":200,
             "msg":"sentence saved successfully"
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -258,6 +300,7 @@ api.add_resource(Multiply, "/multiply")
 api.add_resource(Divide, "/division")
 api.add_resource(Visit,"/hello")
 api.add_resource(Register,"/register")
+api.add_resource(Sentence,"/store")
 
 @app.route('/')
 def hello_world():
