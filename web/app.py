@@ -76,6 +76,14 @@ class Sentence(Resource):
         if num_tokens <= 0:
             return jsonify({"status":301})
 
+        users.update({
+            'Username':username
+            },{"$set":{
+                "Tokens":num_tokens -1
+                }
+            })
+
+
         sentence=users.find({
             "Username":username})[0]["Sentence"]
 
